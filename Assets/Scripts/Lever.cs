@@ -43,6 +43,8 @@ public class Lever : MonoBehaviour
     void Pull()
     {
         pulled = true;
+        AudioManager.Lever();
+        if (pivot != null) EffectsManager.Gear(pivot.position);
         if (pivot != null) pivot.localRotation = Quaternion.Euler(0f, 0f, -45f);
         if (door != null) door.Open();
     }

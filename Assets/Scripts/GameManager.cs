@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour
             spawnPoint = player.position;
         }
         totalGears = Collectible.All.Count;
-        Toast("A/D — рух, Пробіл — стрибок, E — взаємодія, R — перезапуск", 6f);
+        Toast("A/D — рух, Пробіл — стрибок, E — взаємодія, R — перезапуск, M — звук", 6f);
     }
 
     void Update()
@@ -91,6 +91,13 @@ public class GameManager : MonoBehaviour
         if (won || Time.time - lastDeathTime < 0.3f) return;
         lastDeathTime = Time.time;
         deaths++;
+        if (player != null)
+        {
+            Vector3 pos = player.position;
+            pos.y = Mathf.Max(pos.y, -3f);
+            EffectsManager.Death(pos);
+        }
+        AudioManager.Death();
         if (playerController != null) playerController.Respawn(spawnPoint);
         Toast("Спробуйте ще раз!", 1.5f);
     }

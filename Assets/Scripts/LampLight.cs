@@ -34,7 +34,11 @@ public class LampLight : MonoBehaviour
         {
             if (GameManager.Instance != null)
                 GameManager.Instance.SetHint(manualOn ? "E — вимкнути лампу" : "E — увімкнути лампу");
-            if (Input.GetKeyDown(KeyCode.E)) manualOn = !manualOn;
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                manualOn = !manualOn;
+                AudioManager.Lamp();
+            }
         }
 
         float target = manualOn

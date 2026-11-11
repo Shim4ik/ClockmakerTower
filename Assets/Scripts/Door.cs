@@ -29,6 +29,11 @@ public class Door : MonoBehaviour
         if (IsOpen) return;
         IsOpen = true;
 
+        Collider2D col = GetComponent<Collider2D>();
+        Vector3 basePos = col != null ? new Vector3(transform.position.x, col.bounds.min.y, 0f) : transform.position;
+        EffectsManager.Steam(basePos);
+        AudioManager.Door();
+
         if (focusCamera && CameraFollow.Instance != null)
             CameraFollow.Instance.FocusOn(transform, 1.6f);
         if (GameManager.Instance != null)

@@ -34,6 +34,8 @@ public class Collectible : MonoBehaviour
     {
         if (!other.CompareTag("Player")) return;
         if (GameManager.Instance != null) GameManager.Instance.CollectGear();
+        EffectsManager.Gear(transform.position);
+        AudioManager.Gear();
         Destroy(gameObject);
     }
 }
