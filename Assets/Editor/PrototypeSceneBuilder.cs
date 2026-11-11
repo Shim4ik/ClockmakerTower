@@ -10,9 +10,9 @@ using UnityEngine;
 /// текстури (цегла, дошки, метал), матеріали, фон із паралаксом, ліхтарі та цикл дня й ночі.
 /// Запускається сам при першому відкритті проєкту або вручну: меню Clockmaker → Build Environment Scene.
 /// </summary>
-public static class PrototypeSceneBuilder
+public static partial class PrototypeSceneBuilder
 {
-    const string ScenePath = "Assets/Scenes/Environment.unity";
+    const string ScenePath = "Assets/Scenes/Final.unity";
     const string SpriteDir = "Assets/Sprites";
     const string MaterialDir = "Assets/Materials";
 
@@ -34,7 +34,7 @@ public static class PrototypeSceneBuilder
         };
     }
 
-    [MenuItem("Clockmaker/Build Environment Scene")]
+    [MenuItem("Clockmaker/Build Final Scene")]
     public static void Build()
     {
         EnsureDir("Assets/Scenes");
@@ -42,6 +42,7 @@ public static class PrototypeSceneBuilder
         EnsureDir(MaterialDir);
 
         CreateAssets();
+        CreateLab12Assets();
 
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -54,6 +55,7 @@ public static class PrototypeSceneBuilder
         GameObject player = BuildPlayer();
         BuildPuzzle();
         BuildLamps();
+        BuildManagers();
 
         cam.GetComponent<CameraFollow>().target = player.transform;
 
@@ -76,7 +78,7 @@ public static class PrototypeSceneBuilder
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("Сцену з оточенням створено: " + ScenePath + ". Натисніть Play!");
+        Debug.Log("Фінальну сцену створено: " + ScenePath + ". Натисніть Play!");
     }
 
     // ---------------- ресурси ----------------
@@ -412,21 +414,35 @@ public static class PrototypeSceneBuilder
 
     static GameObject BuildPlayer()
     {
-        var player = Box("Player", new Vector2(-8f, -2.9f), new Vector2(0.8f, 1.1f), Blue, 5);
+        // Корінь гравця: фізика, колайдер, керування. Візуал (спрайт + Animator) — дочірній об'єкт,
+        // щоб анімація масштабу не змінювала колайдер.
+        var player = new GameObject("Player");
         player.tag = "Player";
+        player.transform.position = new Vector3(-8f, -2.9f, 0f);
+
         var rb = player.AddComponent<Rigidbody2D>();
         rb.gravityScale = 3f;
         rb.freezeRotation = true;
         rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         rb.sleepMode = RigidbodySleepMode2D.NeverSleep;
-        player.GetComponent<BoxCollider2D>().sharedMaterial = noFriction;
 
-        var eye = Box("Eye", Vector2.zero, new Vector2(0.28f, 0.2f), Color.white, 6, false, player.transform);
+        var bc = player.AddComponent<BoxCollider2D>();
+        bc.size = new Vector2(0.8f, 1.1f);
+        bc.sharedMaterial = noFriction;
+
+        var visual = Box("Visual", new Vector2(-8f, -2.9f), new Vector2(0.8f, 1.1f), Blue, 5, false, player.transform);
+
+        var eye = Box("Eye", Vector2.zero, new Vector2(0.28f, 0.2f), Color.white, 6, false, visual.transform);
         eye.transform.localPosition = new Vector3(0.25f, 0.25f, 0f);
 
         var pc = player.AddComponent<PlayerController2D>();
         pc.eye = eye.transform;
+
+        var animator = visual.AddComponent<Animator>();
+        animator.runtimeAnimatorController = animController;
+        var pa = visual.AddComponent<PlayerAnimator>();
+        pa.controller = pc;
         return player;
     }
 
