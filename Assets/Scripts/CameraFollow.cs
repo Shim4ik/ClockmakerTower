@@ -1,0 +1,66 @@
+using UnityEngine;
+
+/// <summary>
+/// Камера: плавно слідує за гравцем у межах рівня та тимчасово фокусується на важливих подіях (відкриття дверей).
+/// Межі задаються для кожного рівня (SetBounds).
+/// </summary>
+public class CameraFollow : MonoBehaviour
+{
+    public static CameraFollow Instance { get; private set; }
+
+    public Transform target;
+    public Vector3 offset = new Vector3(0f, 1.2f, -10f);
+    public float smoothness = 6f;
+
+    [Header("Межі камери (центр)")]
+    public float minX = 0.7f;
+    public float maxX = 19.3f;
+    public float minY = -1f;
+    public float maxY = 2f;
+
+    Transform focusTarget;
+    float focusUntil;
+
+    void Awake()
+    {
+        Instance = this;
+    }
+
+    public void SetBounds(float newMinX, float newMaxX, float newMinY, float newMaxY)
+    {
+        minX = newMinX;
+        maxX = newMaxX;
+        minY = newMinY;
+        maxY = newMaxY;
+    }
+
+    /// <summary>Миттєво ставить камеру на ціль (без плавного руху), наприклад при старті рівня.</summary>
+    public void Snap(Vector3 targetPosition)
+    {
+        focusTarget = null;
+        transform.position = new Vector3(
+            Mathf.Clamp(targetPosition.x + offset.x, minX, maxX),
+            Mathf.Clamp(targetPosition.y + offset.y, minY, maxY),
+            offset.z);
+    }
+
+    public void FocusOn(Transform t, float duration)
+    {
+        focusTarget = t;
+        focusUntil = Time.time + duration;
+    }
+
+    void LateUpdate()
+    {
+        Transform t = (focusTarget != null && Time.time < focusUntil) ? focusTarget : target;
+        if (t == null) return;
+
+        Vector3 desired = new Vector3(
+            Mathf.Clamp(t.position.x + offset.x, minX, maxX),
+            Mathf.Clamp(t.position.y + offset.y, minY, maxY),
+            offset.z);
+
+        float k = 1f - Mathf.Exp(-smoothness * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, desired, k);
+    }
+}
